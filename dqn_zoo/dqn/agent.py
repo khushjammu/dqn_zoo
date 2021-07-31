@@ -17,6 +17,7 @@
 # pylint: disable=g-bad-import-order
 
 from typing import Any, Callable, Mapping, Text
+from time import time
 
 from absl import logging
 import dm_env
@@ -85,6 +86,7 @@ class Dqn(parts.Agent):
                             transitions.s_tm1).q_values
       q_target_t = network.apply(target_params, target_key,
                                  transitions.s_t).q_values
+      khush_t = time()
       td_errors = _batch_q_learning(
           q_tm1,
           transitions.a_tm1,
@@ -92,6 +94,8 @@ class Dqn(parts.Agent):
           transitions.discount_t,
           q_target_t,
       )
+      print("took:", time()-khush_t)
+
       td_errors = rlax.clip_gradient(td_errors, -grad_error_bound,
                                      grad_error_bound)
       losses = rlax.l2_loss(td_errors)
