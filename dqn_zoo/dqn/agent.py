@@ -32,7 +32,8 @@ from dqn_zoo import processors
 from dqn_zoo import replay as replay_lib
 
 # Batch variant of q_learning.
-_batch_q_learning = jax.vmap(rlax.q_learning)
+# _batch_q_learning = jax.vmap(rlax.q_learning)
+_batch_q_learning = jax.pmap(rlax.q_learning)
 
 
 class Dqn(parts.Agent):
@@ -179,7 +180,6 @@ class Dqn(parts.Agent):
         self._target_params,
         transitions,
     )
-    logging.log_first_n(logging.INFO, 'stonks', 1)
 
   @property
   def online_params(self) -> parts.NetworkParams:
