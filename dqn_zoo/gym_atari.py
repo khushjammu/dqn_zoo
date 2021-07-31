@@ -47,7 +47,7 @@ def _register_atari_environments():
             'game': game,
             'mode': None,  # Not necessarily the same as 0.
             'difficulty': None,  # Not necessarily the same as 0.
-            'obs_type': 'image',
+            'obs_type': 'ram',
             'frameskip': 1,  # Get every frame.
             'repeat_action_probability': 0.0,  # No sticky actions.
             'full_action_space': False,
@@ -60,6 +60,9 @@ def _register_atari_environments():
 _register_atari_environments()
 
 
+RESHAPED_DIMS = (128,1)
+RESHAPE = False # let's not reshape so the raw obs is (128,) before stacking
+
 class GymAtari(dm_env.Environment):
   """Gym Atari with a `dm_env.Environment` interface."""
 
@@ -71,6 +74,9 @@ class GymAtari(dm_env.Environment):
   def reset(self) -> dm_env.TimeStep:
     """Resets the environment and starts a new episode."""
     observation = self._gym_env.reset()
+
+    if RESHAPE: observation = np.reshape(observation, RESHAPED_DIMS)
+
     lives = np.int32(self._gym_env.ale.lives())
     timestep = dm_env.restart((observation, lives))
     self._start_of_episode = False
@@ -84,11 +90,17 @@ class GymAtari(dm_env.Environment):
     if self._start_of_episode:
       step_type = dm_env.StepType.FIRST
       observation = self._gym_env.reset()
+
+      if RESHAPE: observation = np.reshape(observation, RESHAPED_DIMS)
+
       discount = None
       reward = None
       done = False
     else:
       observation, reward, done, info = self._gym_env.step(action)
+
+      if RESHAPE: observation = np.reshape(observation, RESHAPED_DIMS)
+      
       if done:
         assert 'TimeLimit.truncated' not in info, 'Should never truncate.'
         step_type = dm_env.StepType.LAST

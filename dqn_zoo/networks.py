@@ -173,9 +173,9 @@ def noisy_linear(num_outputs: int,
 
 
 def dqn_torso() -> NetworkFn:
-  """DQN convolutional torso.
+  """DQN convolutional torso, modified to work with ram-states.
 
-  Includes scaling from [`0`, `255`] (`uint8`) to [`0`, `1`] (`float32`)`.
+  Includes casting to (`float32`)`.
 
   Returns:
     Network function that `haiku.transform` can be called on.
@@ -184,18 +184,43 @@ def dqn_torso() -> NetworkFn:
   def net_fn(inputs):
     """Function representing convolutional torso for a DQN Q-network."""
     network = hk.Sequential([
-        lambda x: x.astype(jnp.float32) / 255.,
-        conv(32, kernel_shape=(8, 8), stride=(4, 4)),
-        jax.nn.relu,
-        conv(64, kernel_shape=(4, 4), stride=(2, 2)),
-        jax.nn.relu,
-        conv(64, kernel_shape=(3, 3), stride=(1, 1)),
-        jax.nn.relu,
-        hk.Flatten(),
+      lambda x: x.astype(jnp.float32),
+      hk.Flatten(),
+      linear(512),
+      jax.nn.relu,
+      linear(1024),
+      jax.nn.relu,
+      linear(2048),
+      jax.nn.relu,
     ])
     return network(inputs)
 
   return net_fn
+
+# def dqn_torso() -> NetworkFn:
+#   """DQN convolutional torso.
+
+#   Includes scaling from [`0`, `255`] (`uint8`) to [`0`, `1`] (`float32`)`.
+
+#   Returns:
+#     Network function that `haiku.transform` can be called on.
+#   """
+
+#   def net_fn(inputs):
+#     """Function representing convolutional torso for a DQN Q-network."""
+#     network = hk.Sequential([
+#         lambda x: x.astype(jnp.float32) / 255.,
+#         conv(32, kernel_shape=(8, 8), stride=(4, 4)),
+#         jax.nn.relu,
+#         conv(64, kernel_shape=(4, 4), stride=(2, 2)),
+#         jax.nn.relu,
+#         conv(64, kernel_shape=(3, 3), stride=(1, 1)),
+#         jax.nn.relu,
+#         hk.Flatten(),
+#     ])
+#     return network(inputs)
+
+#   return net_fn
 
 
 def dqn_value_head(num_actions: int, shared_bias: bool = False) -> NetworkFn:
