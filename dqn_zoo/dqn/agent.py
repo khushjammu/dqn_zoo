@@ -172,6 +172,7 @@ class Dqn(parts.Agent):
     """Samples a batch of transitions from replay and learns from it."""
     logging.log_first_n(logging.INFO, 'Begin learning', 1)
     transitions = self._replay.sample(self._batch_size)
+    print("stonks")
     self._rng_key, self._opt_state, self._online_params = self._update(
         self._rng_key,
         self._opt_state,
