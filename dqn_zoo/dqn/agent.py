@@ -87,12 +87,20 @@ class Dqn(parts.Agent):
                             transitions.s_tm1).q_values
       q_target_t = network.apply(target_params, target_key,
                                  transitions.s_t).q_values
+
       khush_t = time()
+
+      q_tm1 = jnp.split(q_tm1, 8)
+      a_tm1 = jnp.split(transitions.a_tm1, 8)
+      r_t = jnp.split(transitions.r_t, 8)
+      discount_t = jnp.split(transitions.discount_t, 8)
+      q_target_t = jnp.split(q_target_t, 8)
+
       td_errors = _batch_q_learning(
           q_tm1,
-          transitions.a_tm1,
-          transitions.r_t,
-          transitions.discount_t,
+          a_tm1, # transitions.a_tm1,
+          r_t, #transitions.r_t,
+          discount_t, #transitions.discount_t,
           q_target_t,
       )
       print("took:", time()-khush_t)
